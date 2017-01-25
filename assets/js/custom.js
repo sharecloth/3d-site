@@ -168,3 +168,15 @@ $('.subscribe-form').submit(function(e) {
   });
 
 });
+
+
+$(function() {
+    var $fotoramaDiv = $('.fotorama-feature').fotorama();
+    var fotorama = $fotoramaDiv.data('fotorama');
+
+    var $features = $('.feature');
+    $features.hover(function (e) {
+        var id = $(this).data('fotorama-id');
+        fotorama.show(id);
+    });
+});
