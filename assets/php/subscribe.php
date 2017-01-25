@@ -32,7 +32,10 @@ if ($_POST) {
                 'id'    => $config['list-id'],
                 'email' => array(
                     'email' => $subscriber_email,
-                )
+                ),
+                'double_optin' => false,
+                'update_existing' => true,
+                'replace_interests' => true
             ));
             //var_dump($result);
             $array['valid'] = 1;
