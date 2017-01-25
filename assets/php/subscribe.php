@@ -1,52 +1,53 @@
 <?php
 
+use ZfrMailChimp\Client\MailChimpClient;
+
+require_once dirname(dirname(__DIR__)) . '/vendor/autoload.php';
+
 // Email address verification
-function isEmail($email) {
+function isEmail($email)
+{
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-if($_POST) {
+if ($_POST) {
 
-    $mailchimp_api_key = 'ed0a0f82434326c6c139446ae25a0b62-us9'; // enter your MailChimp API Key
-    // ****
-    $mailchimp_list_id = 'd36bcdc926'; // enter your MailChimp List ID
-    // ****
+    $config = require_once ("config.php");
 
     $subscriber_email = addslashes(trim($_POST['email']));
 
-    if(!isEmail($subscriber_email)) {
+    if (!isEmail($subscriber_email)) {
         $array = array();
         $array['valid'] = 0;
         $array['message'] = 'Not a valid email address!';
         echo json_encode($array);
-    }
-    else {
+    } else {
         $array = array();
         $merge_vars = array();
 
-        require_once 'MailChimp.php';
+        $client = new MailChimpClient($config['api-key']);
 
-        $MailChimp = new \Drewm\MailChimp($mailchimp_api_key);
-        $result = $MailChimp->call('lists/subscribe', array(
-                'id'                => $mailchimp_list_id,
-                'email'             => array('email' => $subscriber_email),
-                'merge_vars'        => $merge_vars,
-                'double_optin'      => true,
-                'update_existing'   => true,
-                'replace_interests' => false,
-                'send_welcome'      => false,
-        ));
-
-        if($result == false) {
-            $array['valid'] = 0;
-            $array['message'] = 'An error occurred! Please try again later.';
-        }
-        else {
+        try {
+            $result = $client->subscribe(array(
+                'id'    => $config['list-id'],
+                'email' => array(
+                    'email' => $subscriber_email,
+                )
+            ));
+            //var_dump($result);
             $array['valid'] = 1;
             $array['message'] = 'Success! Please check your mail.';
+
+            $array = array_merge($array, $result);
+
+        } catch (\Exception $e) {
+            $array['valid'] = 0;
+            $array['message'] = 'An error occurred! Please try again later.';
+            $array['details'] = $e->getMessage();
         }
 
-            echo json_encode($array);
+
+        echo json_encode($array);
 
     }
 
